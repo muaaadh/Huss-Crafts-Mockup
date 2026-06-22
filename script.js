@@ -443,15 +443,16 @@
     const clearBtn = $("#pegClear");
     const requestBtn = $("#pegRequest");
     const live = $("#pegLive");
+    const emptyHint = $("#pegEmpty");
 
-    const svgIco = (inner) => '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + inner + "</svg>";
+    // realistic flat-shaded product illustrations (wood tones + contents), drawn to each footprint's aspect
     const ICONS = {
-      shelf: svgIco('<path d="M3 9h18v3H3z"/><path d="M5 12v4M19 12v4M3 9l2.5-3h13L21 9"/>'),
-      bin:   svgIco('<path d="M6 8h12l-1 11H7L6 8z"/><path d="M4 8h16M10 5h4"/>'),
-      pot:   svgIco('<path d="M7 12h10l-1.4 7H8.4L7 12z"/><path d="M12 12c0-3-2-4.5-4-4.5 0 3 2 4.5 4 4.5zM12 12c0-3 2-4.5 4-4.5 0 3-2 4.5-4 4.5z"/>'),
-      cup:   svgIco('<path d="M7 10h10v6a3 3 0 0 1-3 3h-4a3 3 0 0 1-3-3z"/><path d="M10 10V5M14 10V4"/>'),
-      hook:  svgIco('<path d="M10 4h2v8a3 3 0 0 0 6 0"/>'),
-      roll:  svgIco('<rect x="3" y="9" width="18" height="7" rx="3.5"/><ellipse cx="7" cy="12.5" rx="1.7" ry="3"/>')
+      shelf: '<svg aria-hidden="true" focusable="false" viewBox="0 0 200 56" preserveAspectRatio="xMidYMid meet"><path d="M42 32 H60 L42 53 Z" fill="#c2a45f"/><path d="M158 32 H140 L158 53 Z" fill="#c2a45f"/><rect x="20" y="18" width="160" height="14" rx="3" fill="#ddc187"/><rect x="20" y="16" width="160" height="6" rx="3" fill="#efdcb4"/><rect x="20" y="28" width="160" height="5" rx="2" fill="#c2a45f"/></svg>',
+      bin:   '<svg aria-hidden="true" focusable="false" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet"><rect x="28" y="44" width="64" height="56" rx="5" fill="#a07f3f"/><rect x="40" y="26" width="7" height="40" rx="2" fill="#e2574f"/><rect x="52" y="20" width="7" height="46" rx="2" fill="#5bb46a"/><rect x="64" y="28" width="7" height="38" rx="2" fill="#4a90d9"/><rect x="74" y="22" width="7" height="44" rx="2" fill="#f0b429"/><path d="M94 56 v44 l6 -7 v-37 z" fill="#c2a45f"/><rect x="26" y="56" width="68" height="48" rx="6" fill="#ddc187"/><rect x="26" y="56" width="68" height="7" rx="3.5" fill="#efdcb4"/><rect x="26" y="97" width="68" height="7" rx="3.5" fill="#c2a45f"/></svg>',
+      pot:   '<svg aria-hidden="true" focusable="false" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet"><path d="M60 67 C44 59 36 43 40 31 C54 37 60 51 60 67 Z" fill="#4e9e5a"/><path d="M60 67 C76 59 84 43 80 31 C66 37 60 51 60 67 Z" fill="#4e9e5a"/><path d="M60 67 C52 51 50 37 54 29 C60 39 62 53 60 67 Z" fill="#5cbf6b"/><path d="M60 67 C68 51 70 37 66 29 C60 39 58 53 60 67 Z" fill="#5cbf6b"/><path d="M60 67 C58 49 60 35 60 28 C60 36 62 51 60 67 Z" fill="#74d484"/><path d="M40 71 H80 L74 104 H46 Z" fill="#ddc187"/><rect x="35" y="64" width="50" height="9" rx="3" fill="#c2a45f"/><rect x="38" y="65" width="44" height="4" rx="2" fill="#efdcb4"/></svg>',
+      cup:   '<svg aria-hidden="true" focusable="false" viewBox="0 0 64 120" preserveAspectRatio="xMidYMid meet"><ellipse cx="32" cy="64" rx="16" ry="5" fill="#c2a45f"/><ellipse cx="32" cy="64" rx="11" ry="3" fill="#6f521f"/><rect x="19" y="32" width="6" height="40" rx="2" fill="#e2574f"/><rect x="29" y="26" width="6" height="46" rx="2" fill="#4a90d9"/><rect x="39" y="34" width="6" height="38" rx="2" fill="#f0b429"/><path d="M16 64 H48 L45 110 H19 Z" fill="#ddc187"/><path d="M17 64 H47 L46.4 70 H17.6 Z" fill="#efdcb4"/><path d="M45 64 L48 64 L45 110 L43 108 Z" fill="#c2a45f"/></svg>',
+      hook:  '<svg aria-hidden="true" focusable="false" viewBox="0 0 64 64" preserveAspectRatio="xMidYMid meet"><circle cx="26" cy="22" r="11" fill="#ddc187"/><circle cx="26" cy="22" r="11" fill="none" stroke="#c2a45f" stroke-width="2.5"/><circle cx="23" cy="19" r="3.5" fill="#efdcb4"/><path d="M26 33 V42 a13 13 0 0 0 17 9.5" fill="none" stroke="#c2a45f" stroke-width="8" stroke-linecap="round"/><path d="M26 33 V42 a13 13 0 0 0 17 9.5" fill="none" stroke="#ddc187" stroke-width="3.5" stroke-linecap="round"/></svg>',
+      roll:  '<svg aria-hidden="true" focusable="false" viewBox="0 0 180 56" preserveAspectRatio="xMidYMid meet"><rect x="14" y="13" width="152" height="7" rx="3.5" fill="#c2a45f"/><circle cx="18" cy="16.5" r="6" fill="#ddc187"/><circle cx="162" cy="16.5" r="6" fill="#ddc187"/><rect x="36" y="14" width="108" height="27" rx="13.5" fill="#f6efe1"/><rect x="40" y="16" width="100" height="8" rx="4" fill="#ffffff"/><ellipse cx="36" cy="27.5" rx="6" ry="13.5" fill="#e7ddca"/><ellipse cx="144" cy="27.5" rx="6" ry="13.5" fill="#ffffff"/><circle cx="144" cy="27.5" r="4" fill="#cbb98f"/><path d="M72 40 H110 V52 H72 Z" fill="#fbf7ef"/><path d="M72 40 H110 V44 H72 Z" fill="#e9dfcd"/></svg>'
     };
     const ATT = {
       shelf: { name: "Shelf",      w: 4, h: 1, box: false },
@@ -546,7 +547,9 @@
     });
     const updateCount = () => {
       countLabel.textContent = pstate.items.length;
-      pegBoard.classList.toggle("has-items", pstate.items.length > 0);
+      const has = pstate.items.length > 0;
+      pegBoard.classList.toggle("has-items", has);
+      if (emptyHint) emptyHint.style.display = has ? "none" : "";
     };
     const removeItem = (it) => {
       const i = pstate.items.indexOf(it);

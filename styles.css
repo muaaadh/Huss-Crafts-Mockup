@@ -872,7 +872,7 @@ h1, h2, h3, h4 {
   transition: opacity .35s var(--ease);
   pointer-events: none;
 }
-.stage[data-on="true"] .stage__wall::before { opacity: .16; }
+.stage[data-on="true"] .stage__wall::before { opacity: .1; }
 .stage__wall::after {
   /* faint cable from the top, like a hung sign */
   content: "";
@@ -900,13 +900,11 @@ h1, h2, h3, h4 {
 .stage[data-on="true"] .neon {
   color: #fff;
   text-shadow:
-    0 0 2px var(--neon-core),
-    0 0 4px var(--neon-core),
-    0 0 7px var(--neon-core),
-    0 0 11px var(--neon),
-    0 0 20px var(--neon),
-    0 0 34px var(--neon),
-    0 0 50px var(--neon);
+    0 0 1px var(--neon-core),
+    0 0 3px var(--neon-core),
+    0 0 6px var(--neon),
+    0 0 12px var(--neon),
+    0 0 22px var(--neon);
 }
 .stage[data-on="false"] .neon {
   color: rgba(255,255,255,.18);
@@ -1083,35 +1081,17 @@ h1, h2, h3, h4 {
   position: absolute;
   pointer-events: auto;   /* layer is pointer-events:none; placed items opt back in */
   box-sizing: border-box;
-  border-radius: 9px;
   display: grid; place-items: center;
-  color: #6b4f23;
+  padding: 2%;
   cursor: grab;
   touch-action: none;
-  background: linear-gradient(165deg, #efdcb4, #d8bd83);
-  border: 1px solid #b89a55;
-  box-shadow:
-    0 0 0 1px rgba(0,0,0,.2),
-    0 9px 18px -7px rgba(40,25,10,.55),
-    0 2px 4px rgba(40,25,10,.3),
-    inset 0 1px 0 rgba(255,255,255,.55),
-    inset 0 -3px 7px rgba(120,90,40,.22);
-  transition: box-shadow .18s var(--ease), transform .06s;
+  /* silhouette shadow so the product reads as a real object sitting on the board */
+  filter: drop-shadow(0 7px 9px rgba(35,22,8,.42)) drop-shadow(0 2px 3px rgba(35,22,8,.3));
+  transition: filter .18s var(--ease), transform .08s;
 }
 .peg-att:active { cursor: grabbing; }
-.peg-att:hover { box-shadow: 0 0 0 1px rgba(0,0,0,.2), 0 14px 24px -8px rgba(40,25,10,.6), 0 3px 6px rgba(40,25,10,.35), inset 0 1px 0 rgba(255,255,255,.6), inset 0 -3px 7px rgba(120,90,40,.22); }
-.peg-att svg { width: 56%; height: 56%; max-width: 40px; max-height: 40px; opacity: .82; }
-/* containers look hollow */
-.peg-att--box {
-  background: linear-gradient(165deg, #ecd6a6, #d2b06f);
-  box-shadow:
-    0 0 0 1px rgba(0,0,0,.2),
-    0 9px 18px -7px rgba(40,25,10,.55),
-    inset 0 9px 13px -5px rgba(90,60,20,.4),
-    inset 0 1px 0 rgba(255,255,255,.4);
-  align-items: end;
-}
-.peg-att--box svg { margin-bottom: 8%; }
+.peg-att:hover { filter: drop-shadow(0 12px 15px rgba(35,22,8,.5)) drop-shadow(0 3px 5px rgba(35,22,8,.38)); transform: translateY(-1px); }
+.peg-att svg { width: 100%; height: 100%; display: block; overflow: visible; }
 
 .peg-att__remove {
   position: absolute; top: -9px; right: -9px;
@@ -1132,8 +1112,8 @@ h1, h2, h3, h4 {
 /* dragging clone */
 .peg-att--ghost {
   position: fixed; z-index: 130; pointer-events: none;
-  opacity: .94; cursor: grabbing;
-  box-shadow: 0 22px 36px -10px rgba(0,0,0,.6);
+  opacity: .95; cursor: grabbing;
+  filter: drop-shadow(0 16px 20px rgba(0,0,0,.45));
 }
 
 /* attachment tray */
@@ -1148,12 +1128,12 @@ h1, h2, h3, h4 {
 .peg-chip:hover { transform: translateY(-2px); border-color: var(--gold); background: #1d1513; }
 .peg-chip:active { cursor: grabbing; }
 .peg-chip__ic {
-  width: 42px; height: 42px; border-radius: 10px;
-  display: grid; place-items: center; color: #6b4f23;
-  background: linear-gradient(165deg, #efdcb4, #d8bd83);
-  box-shadow: 0 3px 7px -2px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.5);
+  height: 46px; min-width: 52px; border-radius: 10px;
+  display: grid; place-items: center; padding: 5px 9px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.07);
 }
-.peg-chip__ic svg { width: 23px; height: 23px; }
+.peg-chip__ic svg { height: 100%; width: auto; max-width: 80px; display: block; overflow: visible; filter: drop-shadow(0 2px 3px rgba(0,0,0,.4)); }
 .peg-chip span:last-child { font-size: .74rem; font-weight: 600; color: var(--text-inv-soft); }
 
 @media (max-width: 980px) { .peg__grid { grid-template-columns: 1fr; } }
