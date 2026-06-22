@@ -209,12 +209,12 @@ h1, h2, h3, h4 {
   margin-top: 3px;
 }
 
-.nav { display: flex; align-items: center; gap: 6px; }
+.nav { display: flex; align-items: center; gap: 2px; }
 .nav a {
   color: var(--text-inv);
   font-weight: 600;
-  font-size: .95rem;
-  padding: 9px 14px;
+  font-size: .9rem;
+  padding: 9px 11px;
   border-radius: 999px;
   opacity: .82;
   transition: opacity var(--t-fast), background var(--t-fast);
@@ -772,7 +772,7 @@ h1, h2, h3, h4 {
   .why__grid { grid-template-columns: repeat(2, 1fr); }
 }
 
-@media (max-width: 880px) {
+@media (max-width: 1080px) {
   .header__cta .btn { display: none; }
   .nav-toggle { display: block; }
   .header__cta { gap: 0; }
@@ -836,6 +836,8 @@ h1, h2, h3, h4 {
 
 /* ---- Preview stage ---- */
 .stage {
+  --neon: #ffcf4d;
+  --neon-core: #fff;
   background: var(--ink-2);
   border: 1px solid var(--ink-3);
   border-radius: 22px;
@@ -861,16 +863,27 @@ h1, h2, h3, h4 {
   border: 1px solid rgba(255,255,255,.07);
   overflow: hidden;
 }
+/* ambient room-glow: the wall is lit by the sign's colour */
+.stage__wall::before {
+  content: "";
+  position: absolute; inset: 0; z-index: 0;
+  background: radial-gradient(58% 46% at 50% 46%, var(--neon), transparent 72%);
+  opacity: 0;
+  transition: opacity .35s var(--ease);
+  pointer-events: none;
+}
+.stage[data-on="true"] .stage__wall::before { opacity: .16; }
 .stage__wall::after {
   /* faint cable from the top, like a hung sign */
   content: "";
-  position: absolute; top: 0; left: 50%;
+  position: absolute; top: 0; left: 50%; z-index: 2;
   width: 1px; height: 26px;
   background: linear-gradient(rgba(255,255,255,.25), transparent);
 }
 
 .neon {
-  --neon: #ffcf4d;
+  position: relative;
+  z-index: 1;
   display: inline-block;
   max-width: 100%;
   font-family: "Pacifico", cursive;
@@ -883,17 +896,21 @@ h1, h2, h3, h4 {
   padding: 6px 2px;
   transition: text-shadow .3s var(--ease), color .3s var(--ease);
 }
+/* realistic neon tube: white-hot core, saturated colour blooming outward */
 .stage[data-on="true"] .neon {
+  color: #fff;
   text-shadow:
-    0 0 1px rgba(255,255,255,.92),
-    0 0 7px var(--neon),
-    0 0 15px var(--neon),
-    0 0 30px var(--neon),
-    0 0 56px var(--neon);
+    0 0 2px var(--neon-core),
+    0 0 4px var(--neon-core),
+    0 0 7px var(--neon-core),
+    0 0 11px var(--neon),
+    0 0 20px var(--neon),
+    0 0 34px var(--neon),
+    0 0 50px var(--neon);
 }
 .stage[data-on="false"] .neon {
-  color: rgba(255,255,255,.16);
-  text-shadow: 0 0 1px rgba(255,255,255,.08);
+  color: rgba(255,255,255,.18);
+  text-shadow: 0 0 1px rgba(255,255,255,.10);
 }
 .stage[data-on="true"] .neon.flicker { animation: neonflick .55s steps(1, end) 1; }
 @keyframes neonflick {
@@ -982,7 +999,162 @@ h1, h2, h3, h4 {
 }
 @media (max-width: 560px) {
   .stage__note { margin-left: 0; width: 100%; }
-  .stage__wall { min-height: 240px; padding: 44px 22px; }
+  .stage__wall { min-height: 240px; padding: 52px 24px; }
   .seg { width: 100%; }
   .seg button { flex: 1; }
 }
+
+/* =========================================================
+   PEGBOARD BUILDER
+   ========================================================= */
+.pegboard { background: var(--ink); color: var(--text-inv); }
+.peg__grid { display: grid; grid-template-columns: 1.32fr .68fr; gap: 22px; align-items: start; }
+
+.btn--sm { padding: 9px 16px; font-size: .88rem; }
+
+/* board stage */
+.peg-stage { background: var(--ink-2); border: 1px solid var(--ink-3); border-radius: 22px; padding: 18px; }
+.peg-stage__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.peg-stage__title { font-weight: 700; }
+.peg-stage__meta { color: var(--text-inv-soft); font-size: .9rem; }
+.peg-stage__meta b { color: #fff; }
+.peg-stage__foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+.peg-hint { color: var(--text-inv-soft); font-size: .78rem; }
+
+/* the "wall" the board hangs on */
+.peg-room {
+  border-radius: 18px;
+  padding: clamp(20px, 4vw, 42px);
+  display: grid; place-items: center;
+  background: linear-gradient(180deg, #f4ede2, #e5dbc9);
+  box-shadow: inset 0 2px 12px rgba(0,0,0,.14);
+}
+
+/* the colourful board */
+.peg-board {
+  --pad: clamp(14px, 3.2%, 26px);
+  position: relative;
+  width: 100%;
+  max-width: 540px;
+  padding: var(--pad);
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,.14);
+  box-shadow:
+    0 26px 44px -20px rgba(40,25,10,.6),
+    inset 0 2px 0 rgba(255,255,255,.4),
+    inset 0 -12px 26px rgba(0,0,0,.13);
+  background: linear-gradient(165deg, #c9e35a, #9cc328);
+  transition: background .3s var(--ease);
+}
+.peg-board[data-color="lime"]   { background: linear-gradient(165deg, #c9e35a, #9cc328); }
+.peg-board[data-color="yellow"] { background: linear-gradient(165deg, #f8d65a, #ecb71f); }
+.peg-board[data-color="orange"] { background: linear-gradient(165deg, #f8a04f, #e3741c); }
+.peg-board[data-color="coral"]  { background: linear-gradient(165deg, #f6726e, #de3f3c); }
+.peg-board[data-color="sky"]    { background: linear-gradient(165deg, #6fd6ee, #34aacb); }
+.peg-board[data-color="birch"]  { background: linear-gradient(165deg, #ecd9ad, #d4b87c); }
+
+.peg-holes {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  grid-template-rows: repeat(var(--rows), 1fr);
+  width: 100%;
+  aspect-ratio: var(--cols) / var(--rows);
+}
+.peg-hole { display: grid; place-items: center; }
+.peg-hole i {
+  width: 46%; aspect-ratio: 1;
+  background: rgba(0,0,0,.30);
+  clip-path: polygon(38% 0,62% 0,62% 38%,100% 38%,100% 62%,62% 62%,62% 100%,38% 100%,38% 62%,0 62%,0 38%,38% 38%);
+  box-shadow: inset 1.5px 1.5px 2px rgba(0,0,0,.55), inset -1px -1px 1px rgba(255,255,255,.3);
+}
+
+.peg-layer { position: absolute; inset: var(--pad); pointer-events: none; }
+.peg-empty {
+  position: absolute; inset: var(--pad);
+  display: grid; place-items: center;
+  color: rgba(0,0,0,.8); font-weight: 700; font-size: .95rem;
+  text-shadow: 0 1px 2px rgba(255,255,255,.55);
+  pointer-events: none; text-align: center; padding: 10px;
+}
+.peg-board.has-items .peg-empty { display: none; }
+
+/* placed attachment — soft 3D wooden card */
+.peg-att {
+  position: absolute;
+  pointer-events: auto;   /* layer is pointer-events:none; placed items opt back in */
+  box-sizing: border-box;
+  border-radius: 9px;
+  display: grid; place-items: center;
+  color: #6b4f23;
+  cursor: grab;
+  touch-action: none;
+  background: linear-gradient(165deg, #efdcb4, #d8bd83);
+  border: 1px solid #b89a55;
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,.2),
+    0 9px 18px -7px rgba(40,25,10,.55),
+    0 2px 4px rgba(40,25,10,.3),
+    inset 0 1px 0 rgba(255,255,255,.55),
+    inset 0 -3px 7px rgba(120,90,40,.22);
+  transition: box-shadow .18s var(--ease), transform .06s;
+}
+.peg-att:active { cursor: grabbing; }
+.peg-att:hover { box-shadow: 0 0 0 1px rgba(0,0,0,.2), 0 14px 24px -8px rgba(40,25,10,.6), 0 3px 6px rgba(40,25,10,.35), inset 0 1px 0 rgba(255,255,255,.6), inset 0 -3px 7px rgba(120,90,40,.22); }
+.peg-att svg { width: 56%; height: 56%; max-width: 40px; max-height: 40px; opacity: .82; }
+/* containers look hollow */
+.peg-att--box {
+  background: linear-gradient(165deg, #ecd6a6, #d2b06f);
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,.2),
+    0 9px 18px -7px rgba(40,25,10,.55),
+    inset 0 9px 13px -5px rgba(90,60,20,.4),
+    inset 0 1px 0 rgba(255,255,255,.4);
+  align-items: end;
+}
+.peg-att--box svg { margin-bottom: 8%; }
+
+.peg-att__remove {
+  position: absolute; top: -9px; right: -9px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--red-bright); color: #fff; border: 2px solid #fff;
+  display: grid; place-items: center; font-size: 14px; line-height: 1;
+  cursor: pointer; opacity: 0; transform: scale(.5);
+  box-shadow: 0 2px 6px rgba(0,0,0,.45);
+  transition: opacity .15s, transform .15s;
+}
+.peg-att:hover .peg-att__remove,
+.peg-att:focus-within .peg-att__remove { opacity: 1; transform: scale(1); }
+/* touch devices have no hover — always show the remove control */
+@media (hover: none) {
+  .peg-att__remove { opacity: 1; transform: scale(1); }
+}
+
+/* dragging clone */
+.peg-att--ghost {
+  position: fixed; z-index: 130; pointer-events: none;
+  opacity: .94; cursor: grabbing;
+  box-shadow: 0 22px 36px -10px rgba(0,0,0,.6);
+}
+
+/* attachment tray */
+.peg-tray { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.peg-chip {
+  display: flex; flex-direction: column; align-items: center; gap: 7px;
+  padding: 12px 6px; border-radius: 12px;
+  background: #120d12; border: 1.5px solid var(--ink-3); color: var(--text-inv);
+  cursor: grab; touch-action: none;
+  transition: border-color .2s, transform .15s, background .2s;
+}
+.peg-chip:hover { transform: translateY(-2px); border-color: var(--gold); background: #1d1513; }
+.peg-chip:active { cursor: grabbing; }
+.peg-chip__ic {
+  width: 42px; height: 42px; border-radius: 10px;
+  display: grid; place-items: center; color: #6b4f23;
+  background: linear-gradient(165deg, #efdcb4, #d8bd83);
+  box-shadow: 0 3px 7px -2px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.5);
+}
+.peg-chip__ic svg { width: 23px; height: 23px; }
+.peg-chip span:last-child { font-size: .74rem; font-weight: 600; color: var(--text-inv-soft); }
+
+@media (max-width: 980px) { .peg__grid { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .peg-tray { grid-template-columns: repeat(2, 1fr); } }

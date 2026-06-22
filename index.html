@@ -50,7 +50,8 @@
       <nav class="nav" id="nav" aria-label="Primary">
         <a href="#services">What we make</a>
         <a href="#work">Our work</a>
-        <a href="#design">Design yours</a>
+        <a href="#design">Neon</a>
+        <a href="#pegboard">Pegboards</a>
         <a href="#process">Process</a>
         <a href="#why">Why us</a>
         <a href="#contact">Contact</a>
@@ -352,6 +353,70 @@
       </div>
     </section>
 
+    <!-- ===================== PEGBOARD BUILDER ===================== -->
+    <section class="section pegboard section--dark" id="pegboard">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="eyebrow">Pegboard studio</span>
+          <h2>Build your pegboard wall</h2>
+          <p>Pick a board colour and size, then drag shelves, bins and pots onto the board. Snap them into place, rearrange, and send us your layout for a quote.</p>
+        </div>
+
+        <div class="peg__grid">
+          <!-- BOARD STAGE -->
+          <div class="peg-stage reveal">
+            <div class="peg-stage__bar">
+              <span class="peg-stage__title">Your board</span>
+              <span class="peg-stage__meta"><b id="pegSize">90 × 60 cm</b> · <span id="pegCount">0</span> attachment(s)</span>
+            </div>
+            <div class="peg-room">
+              <div class="peg-board" id="pegBoard" data-color="lime" role="group" aria-roledescription="pegboard" aria-label="Pegboard">
+                <div class="peg-holes" id="pegHoles" aria-hidden="true"></div>
+                <div class="peg-layer" id="pegLayer" role="group" aria-label="Pegboard layout — attachments placed here"></div>
+                <p class="peg-empty" id="pegEmpty">Drag an attachment onto the board</p>
+              </div>
+            </div>
+            <div class="peg-stage__foot">
+              <button class="btn btn--ghost btn--sm" id="pegClear" type="button">Clear board</button>
+              <span class="peg-hint">Drag items on · drag a placed item off the board to remove it</span>
+            </div>
+            <span id="pegLive" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></span>
+          </div>
+
+          <!-- CONTROLS -->
+          <div class="peg-controls reveal" data-d="1">
+            <div class="ctrl">
+              <div class="ctrl__head"><span class="ctrl__num">1</span><h3>Board colour</h3></div>
+              <div class="swatch-row" id="pegColors" role="radiogroup" aria-label="Board colour"></div>
+            </div>
+
+            <div class="ctrl">
+              <div class="ctrl__head"><span class="ctrl__num">2</span><h3>Board size</h3></div>
+              <div class="seg" id="pegSizes" role="radiogroup" aria-label="Board size">
+                <button type="button" role="radio" aria-checked="false" tabindex="-1" data-size="s">Small</button>
+                <button type="button" role="radio" aria-checked="true" tabindex="0" data-size="m">Medium</button>
+                <button type="button" role="radio" aria-checked="false" tabindex="-1" data-size="l">Large</button>
+              </div>
+            </div>
+
+            <div class="ctrl">
+              <div class="ctrl__head"><span class="ctrl__num">3</span><h3>Attachments</h3></div>
+              <p class="ctrl__hint" style="margin:0 0 12px">Drag onto the board — or tap to drop one in. Use arrow keys to nudge, Delete to remove.</p>
+              <div class="peg-tray" id="pegTray" role="group" aria-label="Available attachments"></div>
+            </div>
+
+            <div class="builder__cta">
+              <button class="btn btn--primary" id="pegRequest" type="button">
+                Request this pegboard
+                <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              </button>
+              <p class="builder__disclaimer">We'll pre-fill the enquiry with your board colour, size and attachments.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ===================== PROCESS ===================== -->
     <section class="section process" id="process">
       <div class="container process__inner">
@@ -495,6 +560,7 @@
                 <select id="f-type" name="project">
                   <option value="" selected>Select a project type…</option>
                   <option value="neon">Custom neon / LED sign</option>
+                  <option value="pegboard">Custom pegboard</option>
                   <option>Illuminated channel letters</option>
                   <option>Halo / backlit sign</option>
                   <option>Acrylic &amp; 3D lettering</option>
@@ -550,6 +616,8 @@
           <ul>
             <li><a href="#services">What we make</a></li>
             <li><a href="#work">Our work</a></li>
+            <li><a href="#design">Neon</a></li>
+            <li><a href="#pegboard">Pegboards</a></li>
             <li><a href="#process">Process</a></li>
             <li><a href="#why">Why us</a></li>
           </ul>

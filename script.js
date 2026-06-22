@@ -232,8 +232,8 @@
       { name: "Righteous",      css: '"Righteous", sans-serif' }
     ];
     const COLORS = [
-      { name: "Warm white", hex: "#ffd9a6" },
-      { name: "White",      hex: "#ffffff" },
+      { name: "Warm white", hex: "#f3d9ad", core: "#fff6e8" },
+      { name: "White",      hex: "#dfe9f5", core: "#ffffff" },
       { name: "Gold",       hex: "#ffcf4d" },
       { name: "Sunset",     hex: "#ff7a3c" },
       { name: "Red",        hex: "#ff4d4d" },
@@ -388,9 +388,10 @@
       const hasText = !!(state.text && state.text.trim().length);
       neon.textContent = hasText ? state.text : "Your text";
       neon.style.fontFamily = state.font.css;
-      neon.style.setProperty("--neon", state.color.hex);
+      stage.style.setProperty("--neon", state.color.hex); // set on stage so the wall ambient inherits it
+      stage.style.setProperty("--neon-core", state.color.core || "#fff"); // keep a hot core distinct from white/warm-white blooms
       // slider sets the size cap, but keep viewport scaling so it shrinks on phones
-      const rem = 2.1 + (state.width - 30) / 170 * 2.9;
+      const rem = Math.min(4.4, 2.1 + (state.width - 30) / 170 * 2.9);
       neon.style.fontSize = "clamp(1.8rem, " + (rem * 1.7).toFixed(1) + "vw, " + rem.toFixed(2) + "rem)";
 
       widthVal.textContent = state.width;
@@ -427,5 +428,326 @@
     // re-measure the derived height after viewport changes (font scales via clamp)
     let resizeT;
     window.addEventListener("resize", () => { clearTimeout(resizeT); resizeT = setTimeout(render, 150); });
+  }
+
+  /* ---------- Pegboard builder (drag & drop) ---------- */
+  const pegBoard = $("#pegBoard");
+  if (pegBoard) {
+    const holes = $("#pegHoles");
+    const layer = $("#pegLayer");
+    const tray = $("#pegTray");
+    const colorsBox = $("#pegColors");
+    const sizesBox = $("#pegSizes");
+    const sizeLabel = $("#pegSize");
+    const countLabel = $("#pegCount");
+    const clearBtn = $("#pegClear");
+    const requestBtn = $("#pegRequest");
+    const live = $("#pegLive");
+
+    const svgIco = (inner) => '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + inner + "</svg>";
+    const ICONS = {
+      shelf: svgIco('<path d="M3 9h18v3H3z"/><path d="M5 12v4M19 12v4M3 9l2.5-3h13L21 9"/>'),
+      bin:   svgIco('<path d="M6 8h12l-1 11H7L6 8z"/><path d="M4 8h16M10 5h4"/>'),
+      pot:   svgIco('<path d="M7 12h10l-1.4 7H8.4L7 12z"/><path d="M12 12c0-3-2-4.5-4-4.5 0 3 2 4.5 4 4.5zM12 12c0-3 2-4.5 4-4.5 0 3-2 4.5-4 4.5z"/>'),
+      cup:   svgIco('<path d="M7 10h10v6a3 3 0 0 1-3 3h-4a3 3 0 0 1-3-3z"/><path d="M10 10V5M14 10V4"/>'),
+      hook:  svgIco('<path d="M10 4h2v8a3 3 0 0 0 6 0"/>'),
+      roll:  svgIco('<rect x="3" y="9" width="18" height="7" rx="3.5"/><ellipse cx="7" cy="12.5" rx="1.7" ry="3"/>')
+    };
+    const ATT = {
+      shelf: { name: "Shelf",      w: 4, h: 1, box: false },
+      bin:   { name: "Deep bin",   w: 2, h: 2, box: true },
+      pot:   { name: "Plant pot",  w: 2, h: 2, box: true },
+      cup:   { name: "Cup holder", w: 1, h: 2, box: true },
+      hook:  { name: "Hook",       w: 1, h: 1, box: false },
+      roll:  { name: "Paper roll", w: 3, h: 1, box: false }
+    };
+    const TRAY_ORDER = ["shelf", "bin", "pot", "cup", "hook", "roll"];
+    const PEGC = [
+      { key: "lime",   name: "Lime",   c: "#a6cf2e" },
+      { key: "yellow", name: "Yellow", c: "#ecb71f" },
+      { key: "orange", name: "Orange", c: "#e3741c" },
+      { key: "coral",  name: "Coral",  c: "#de3f3c" },
+      { key: "sky",    name: "Sky",    c: "#34aacb" },
+      { key: "birch",  name: "Birch",  c: "#d4b87c" }
+    ];
+    const SIZES = { s: { cols: 7, rows: 5, cm: "60 × 45 cm" }, m: { cols: 9, rows: 6, cm: "90 × 60 cm" }, l: { cols: 11, rows: 7, cm: "120 × 75 cm" } };
+
+    const pstate = { color: "lime", size: "m", items: [] };
+    let COLS = SIZES.m.cols, ROWS = SIZES.m.rows;
+    const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+    let announceT;
+    const announce = (m) => { if (!live) return; clearTimeout(announceT); announceT = setTimeout(() => { live.textContent = m; }, 300); };
+
+    // roving-tabindex radiogroup
+    const radioGroup = (container, onSelect) => {
+      const radios = () => $$('[role="radio"]', container);
+      const pick = (el, focus) => {
+        radios().forEach((r) => { const on = r === el; r.setAttribute("aria-checked", on ? "true" : "false"); r.tabIndex = on ? 0 : -1; });
+        if (focus) el.focus();
+        onSelect(el);
+      };
+      container.addEventListener("keydown", (e) => {
+        const list = radios(); const i = list.indexOf(document.activeElement);
+        if (i < 0) return;
+        let ni = -1;
+        if (e.key === "ArrowRight" || e.key === "ArrowDown") ni = (i + 1) % list.length;
+        else if (e.key === "ArrowLeft" || e.key === "ArrowUp") ni = (i - 1 + list.length) % list.length;
+        else if (e.key === "Home") ni = 0; else if (e.key === "End") ni = list.length - 1;
+        else if (e.key === " " || e.key === "Enter") { e.preventDefault(); pick(list[i], true); return; }
+        if (ni >= 0) { e.preventDefault(); pick(list[ni], true); }
+      });
+      return pick;
+    };
+
+    const cell = () => { const r = layer.getBoundingClientRect(); return { w: r.width / COLS, h: r.height / ROWS, rect: r }; };
+
+    const buildHoles = () => {
+      holes.style.setProperty("--cols", COLS);
+      holes.style.setProperty("--rows", ROWS);
+      holes.innerHTML = "";
+      const frag = document.createDocumentFragment();
+      for (let i = 0; i < COLS * ROWS; i++) {
+        const d = document.createElement("div"); d.className = "peg-hole";
+        d.appendChild(document.createElement("i")); frag.appendChild(d);
+      }
+      holes.appendChild(frag);
+    };
+
+    const makeAtt = (type, ghost) => {
+      const def = ATT[type];
+      const el = document.createElement("div");
+      el.className = "peg-att peg-att--" + type + (def.box ? " peg-att--box" : "");
+      el.innerHTML = ICONS[type];
+      if (!ghost) {
+        el.tabIndex = 0;
+        el.setAttribute("role", "button");
+        el.setAttribute("aria-label", def.name + " — drag to move, arrow keys to nudge, Delete to remove");
+        const rm = document.createElement("button");
+        rm.type = "button"; rm.className = "peg-att__remove";
+        rm.setAttribute("aria-label", "Remove " + def.name); rm.innerHTML = "&times;";
+        el.appendChild(rm);
+      }
+      return el;
+    };
+
+    const positionItem = (it) => {
+      const c = cell(), def = ATT[it.type];
+      it.el.style.left = (it.col * c.w) + "px";
+      it.el.style.top = (it.row * c.h) + "px";
+      it.el.style.width = (def.w * c.w) + "px";
+      it.el.style.height = (def.h * c.h) + "px";
+    };
+    const repositionAll = () => pstate.items.forEach((it) => {
+      const def = ATT[it.type];
+      it.col = clamp(it.col, 0, COLS - def.w);
+      it.row = clamp(it.row, 0, ROWS - def.h);
+      positionItem(it);
+    });
+    const updateCount = () => {
+      countLabel.textContent = pstate.items.length;
+      pegBoard.classList.toggle("has-items", pstate.items.length > 0);
+    };
+    const removeItem = (it) => {
+      const i = pstate.items.indexOf(it);
+      if (i >= 0) pstate.items.splice(i, 1);
+      const hadFocus = it.el.contains(document.activeElement);
+      it.el.remove(); updateCount();
+      if (hadFocus) {
+        const next = pstate.items[i] || pstate.items[i - 1];
+        const target = (next && next.el) || tray.querySelector(".peg-chip");
+        if (target) target.focus();
+      }
+    };
+
+    const overlaps = (a, ad, col, row) => !(col + ad.w <= a.col || a.col + ATT[a.type].w <= col || row + ad.h <= a.row || a.row + ATT[a.type].h <= row);
+    const findFree = (def) => {
+      for (let row = 0; row <= ROWS - def.h; row++)
+        for (let col = 0; col <= COLS - def.w; col++)
+          if (!pstate.items.some((a) => overlaps(a, def, col, row))) return { col, row };
+      return null;
+    };
+    // resolve a drop cell, preferring the chosen one; fall back to nearest free slot (excluding `self`)
+    const resolveSpot = (def, col, row, self) => {
+      col = clamp(col, 0, COLS - def.w);
+      row = clamp(row, 0, ROWS - def.h);
+      if (!pstate.items.some((a) => a !== self && overlaps(a, def, col, row))) return { col, row };
+      for (let r = 0; r <= ROWS - def.h; r++)
+        for (let cc = 0; cc <= COLS - def.w; cc++)
+          if (!pstate.items.some((a) => a !== self && overlaps(a, def, cc, r))) return { col: cc, row: r };
+      return { col, row }; // board full — allow overlap as last resort
+    };
+
+    const bindItem = (it) => {
+      it.el.addEventListener("pointerdown", (ev) => {
+        if (ev.target.closest(".peg-att__remove")) return;
+        it.el.style.display = "none";
+        startDrag(it.type, ev, it);
+      });
+      it.el.querySelector(".peg-att__remove").addEventListener("click", (ev) => {
+        ev.stopPropagation(); removeItem(it); announce(ATT[it.type].name + " removed. " + pstate.items.length + " on the board.");
+      });
+      it.el.addEventListener("keydown", (ev) => {
+        const def = ATT[it.type]; let moved = true;
+        if (ev.key === "ArrowLeft") it.col = clamp(it.col - 1, 0, COLS - def.w);
+        else if (ev.key === "ArrowRight") it.col = clamp(it.col + 1, 0, COLS - def.w);
+        else if (ev.key === "ArrowUp") it.row = clamp(it.row - 1, 0, ROWS - def.h);
+        else if (ev.key === "ArrowDown") it.row = clamp(it.row + 1, 0, ROWS - def.h);
+        else if (ev.key === "Delete" || ev.key === "Backspace") { ev.preventDefault(); removeItem(it); announce(def.name + " removed. " + pstate.items.length + " on the board."); return; }
+        else moved = false;
+        if (moved) { ev.preventDefault(); positionItem(it); }
+      });
+    };
+
+    const place = (type, col, row, focusIt) => {
+      const def = ATT[type];
+      const it = { type, col: clamp(col, 0, COLS - def.w), row: clamp(row, 0, ROWS - def.h), el: makeAtt(type, false) };
+      pstate.items.push(it);
+      layer.appendChild(it.el);
+      positionItem(it); bindItem(it); updateCount();
+      if (focusIt) it.el.focus();
+      return it;
+    };
+
+    // pointer drag — handles new (from tray) and moving existing
+    let drag = null, justDragged = false;
+    const moveGhost = (ev) => {
+      const w = drag.ghost.offsetWidth, h = drag.ghost.offsetHeight;
+      drag.ghost.style.left = (ev.clientX - w / 2) + "px";
+      drag.ghost.style.top = (ev.clientY - h / 2) + "px";
+    };
+    const onDragMove = (ev) => { if (drag) { drag.moved = true; moveGhost(ev); } };
+    const onDragUp = (ev) => {
+      window.removeEventListener("pointermove", onDragMove);
+      window.removeEventListener("pointercancel", onDragCancel);
+      if (!drag) return;
+      const c = cell(), def = drag.def;
+      const inside = ev.clientX >= c.rect.left && ev.clientX <= c.rect.right && ev.clientY >= c.rect.top && ev.clientY <= c.rect.bottom;
+      drag.ghost.remove();
+      if (inside) {
+        const col = Math.round((ev.clientX - c.rect.left - (def.w * c.w) / 2) / c.w);
+        const row = Math.round((ev.clientY - c.rect.top - (def.h * c.h) / 2) / c.h);
+        if (drag.existing) {
+          const spot = resolveSpot(def, col, row, drag.existing);
+          drag.existing.col = spot.col; drag.existing.row = spot.row;
+          drag.existing.el.style.display = "";
+          positionItem(drag.existing);
+          if (!drag.moved) drag.existing.el.focus(); // a tap (no move) selects the item for keyboard editing
+          else announce(def.name + " moved.");
+        } else {
+          const spot = resolveSpot(def, col, row, null);
+          place(drag.type, spot.col, spot.row);
+          announce(def.name + " added. " + pstate.items.length + " on the board.");
+        }
+      } else if (drag.existing) {
+        removeItem(drag.existing);
+        announce(def.name + " removed. " + pstate.items.length + " on the board.");
+      }
+      if (drag.moved && !drag.existing) { justDragged = true; setTimeout(() => { justDragged = false; }, 60); }
+      drag = null;
+    };
+    // browser stole the gesture (scroll, system swipe…) — restore rather than orphan the item
+    function onDragCancel() {
+      window.removeEventListener("pointermove", onDragMove);
+      window.removeEventListener("pointerup", onDragUp);
+      if (!drag) return;
+      drag.ghost.remove();
+      if (drag.existing) { drag.existing.el.style.display = ""; positionItem(drag.existing); }
+      drag = null;
+    }
+    function startDrag(type, ev, existing) {
+      ev.preventDefault();
+      const def = ATT[type], c = cell();
+      const ghost = makeAtt(type, true);
+      ghost.classList.add("peg-att--ghost");
+      ghost.style.width = (def.w * c.w) + "px";
+      ghost.style.height = (def.h * c.h) + "px";
+      document.body.appendChild(ghost);
+      drag = { type, def, ghost, existing: existing || null, moved: false };
+      moveGhost(ev);
+      window.addEventListener("pointermove", onDragMove);
+      window.addEventListener("pointerup", onDragUp, { once: true });
+      window.addEventListener("pointercancel", onDragCancel, { once: true });
+    }
+
+    // build tray chips
+    TRAY_ORDER.forEach((type) => {
+      const def = ATT[type];
+      const chip = document.createElement("button");
+      chip.type = "button"; chip.className = "peg-chip"; chip.dataset.type = type;
+      chip.setAttribute("aria-label", "Add " + def.name + " to board (placed automatically, then use arrow keys to position)");
+      chip.innerHTML = '<span class="peg-chip__ic">' + ICONS[type] + "</span><span>" + def.name + "</span>";
+      chip.addEventListener("pointerdown", (ev) => startDrag(type, ev, null));
+      chip.addEventListener("click", () => {
+        if (justDragged) { justDragged = false; return; }
+        const spot = findFree(def);
+        if (!spot) { announce("No room for a " + def.name + " — remove an item or choose a larger board."); return; }
+        place(type, spot.col, spot.row, true);
+        announce(def.name + " added at column " + (spot.col + 1) + ", row " + (spot.row + 1) + ". Use arrow keys to move it, Delete to remove. " + pstate.items.length + " on the board.");
+      });
+      tray.appendChild(chip);
+    });
+
+    // colour chips
+    PEGC.forEach((col, idx) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "colorchip"; b.setAttribute("role", "radio");
+      b.setAttribute("aria-checked", idx === 0 ? "true" : "false");
+      b.setAttribute("aria-label", "Board colour: " + col.name);
+      b.tabIndex = idx === 0 ? 0 : -1;
+      b.style.setProperty("--c", col.c); b.dataset.key = col.key;
+      b.appendChild(document.createElement("span"));
+      colorsBox.appendChild(b);
+    });
+    const pickColor = radioGroup(colorsBox, (el) => { pstate.color = el.dataset.key; pegBoard.setAttribute("data-color", el.dataset.key); });
+    $$(".colorchip", colorsBox).forEach((b) => b.addEventListener("click", () => pickColor(b, false)));
+
+    // size segmented
+    const setSize = (key) => {
+      pstate.size = key; COLS = SIZES[key].cols; ROWS = SIZES[key].rows;
+      sizeLabel.textContent = SIZES[key].cm;
+      buildHoles();
+      requestAnimationFrame(repositionAll);
+    };
+    const pickSize = radioGroup(sizesBox, (el) => setSize(el.dataset.size));
+    $$('[role="radio"]', sizesBox).forEach((b) => b.addEventListener("click", () => pickSize(b, false)));
+
+    // clear
+    clearBtn.addEventListener("click", () => {
+      pstate.items.slice().forEach(removeItem);
+      announce("Board cleared. Board is empty.");
+    });
+
+    // request handoff
+    requestBtn.addEventListener("click", () => {
+      const colName = (PEGC.find((c) => c.key === pstate.color) || {}).name || pstate.color;
+      let list = "none yet";
+      if (pstate.items.length) {
+        const tally = {};
+        pstate.items.forEach((it) => { tally[it.type] = (tally[it.type] || 0) + 1; });
+        list = TRAY_ORDER.filter((t) => tally[t]).map((t) => tally[t] + "× " + ATT[t].name).join(", ");
+      }
+      const spec =
+        "Custom pegboard enquiry\n" +
+        "• Board colour: " + colName + "\n" +
+        "• Board size: " + SIZES[pstate.size].cm + "\n" +
+        "• Attachments: " + list;
+      const type = $("#f-type");
+      if (type) type.value = "pegboard";
+      const msg = $("#f-msg");
+      if (msg) { msg.value = spec; msg.dispatchEvent(new Event("input", { bubbles: true })); }
+      if (card && card.classList.contains("is-sent")) { card.classList.remove("is-sent"); if (success) success.classList.remove("show"); }
+      if (formStatus) formStatus.textContent = "Your pegboard layout was added to the Project details field below — add your name and contact details, then send the enquiry.";
+      const contact = $("#contact");
+      if (contact) contact.scrollIntoView(scrollOpts);
+      const name = $("#f-name");
+      if (name) setTimeout(() => name.focus({ preventScroll: true }), reduceMotion ? 0 : 450);
+    });
+
+    // init
+    buildHoles();
+    updateCount();
+    let pegRz;
+    window.addEventListener("resize", () => { clearTimeout(pegRz); pegRz = setTimeout(repositionAll, 150); });
   }
 })();
