@@ -25,6 +25,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Display fonts for the neon sign builder preview only — deferred off the critical path -->
+  <link rel="stylesheet" media="print" onload="this.media='all'"
+        href="https://fonts.googleapis.com/css2?family=Audiowide&family=Bungee&family=Dancing+Script:wght@700&family=Great+Vibes&family=Pacifico&family=Permanent+Marker&family=Righteous&family=Satisfy&display=swap" />
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Audiowide&family=Bungee&family=Dancing+Script:wght@700&family=Great+Vibes&family=Pacifico&family=Permanent+Marker&family=Righteous&family=Satisfy&display=swap" />
+  </noscript>
 
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -44,6 +50,7 @@
       <nav class="nav" id="nav" aria-label="Primary">
         <a href="#services">What we make</a>
         <a href="#work">Our work</a>
+        <a href="#design">Design yours</a>
         <a href="#process">Process</a>
         <a href="#why">Why us</a>
         <a href="#contact">Contact</a>
@@ -270,6 +277,81 @@
       </div>
     </section>
 
+    <!-- ===================== NEON BUILDER ===================== -->
+    <section class="section builder section--dark" id="design">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="eyebrow">Neon studio</span>
+          <h2>Design your own neon</h2>
+          <p>Type your text, choose a font and colour, set the size — and watch it glow. Love it? Send the design straight to us for a quote.</p>
+        </div>
+
+        <div class="builder__grid">
+          <!-- PREVIEW STAGE -->
+          <div class="stage reveal" id="neonStage" data-on="true">
+            <div class="stage__bar">
+              <button class="power" id="neonPower" type="button" role="switch" aria-checked="true">
+                <span class="power__track"><span class="power__thumb"></span></span>
+                <span class="power__txt">Light <b id="neonPowerState">on</b></span>
+              </button>
+              <div class="stage__price">
+                <span class="stage__price-label">Estimated</span>
+                <span class="stage__price-val" id="neonPrice">MVR 2,560</span>
+              </div>
+            </div>
+
+            <div class="stage__wall">
+              <div class="neon" id="neonText" aria-hidden="true">Huss Crafts</div>
+            </div>
+
+            <div class="stage__dims">
+              <span class="stage__dim"><b id="neonDimW">90</b> cm</span>
+              <span class="stage__dims-x">×</span>
+              <span class="stage__dim"><b id="neonDimH">40</b> cm</span>
+              <span class="stage__note">Digital mockup — indicative size &amp; price only</span>
+            </div>
+            <span id="neonLive" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></span>
+          </div>
+
+          <!-- CONTROLS -->
+          <div class="controls reveal" data-d="1">
+            <div class="ctrl">
+              <div class="ctrl__head"><span class="ctrl__num">1</span><h3>Your text</h3></div>
+              <textarea id="neonInput" class="neon-input" rows="2" maxlength="40" placeholder="Type your text…" aria-label="Sign text">Huss Crafts</textarea>
+              <p class="ctrl__hint"><span id="neonCount">11</span>/40 characters · up to 3 lines</p>
+            </div>
+
+            <div class="ctrl">
+              <div class="ctrl__head"><span class="ctrl__num">2</span><h3>Font</h3></div>
+              <div class="swatch-row fonts" id="neonFonts" role="radiogroup" aria-label="Choose a font"></div>
+            </div>
+
+            <div class="ctrl">
+              <div class="ctrl__head"><span class="ctrl__num">3</span><h3>Colour</h3></div>
+              <div class="swatch-row colors" id="neonColors" role="radiogroup" aria-label="Choose a neon colour"></div>
+            </div>
+
+            <div class="ctrl">
+              <div class="ctrl__head"><span class="ctrl__num">4</span><h3>Width</h3><span class="ctrl__val"><b id="neonWidthVal">90</b> cm</span></div>
+              <input type="range" id="neonWidth" class="range" min="30" max="200" step="5" value="90" aria-label="Sign width in centimetres" />
+              <div class="seg" id="neonUse" role="radiogroup" aria-label="Where will it be used?">
+                <button type="button" role="radio" aria-checked="true" tabindex="0" data-use="indoor">Indoor</button>
+                <button type="button" role="radio" aria-checked="false" tabindex="-1" data-use="outdoor">Outdoor</button>
+              </div>
+            </div>
+
+            <div class="builder__cta">
+              <button class="btn btn--primary" id="neonRequest" type="button">
+                Request this design
+                <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              </button>
+              <p class="builder__disclaimer">We'll pre-fill the enquiry form with your design. Final price is confirmed on quote.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ===================== PROCESS ===================== -->
     <section class="section process" id="process">
       <div class="container process__inner">
@@ -412,6 +494,7 @@
                 <label for="f-type">What do you need?</label>
                 <select id="f-type" name="project">
                   <option value="" selected>Select a project type…</option>
+                  <option value="neon">Custom neon / LED sign</option>
                   <option>Illuminated channel letters</option>
                   <option>Halo / backlit sign</option>
                   <option>Acrylic &amp; 3D lettering</option>
